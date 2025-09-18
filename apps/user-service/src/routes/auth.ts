@@ -5,13 +5,12 @@ import { signAccessToken, signRefreshToken } from "../lib/jwt.js"
 import { verifyToken } from "../lib/jwt-verifier.js"
 import { add } from "date-fns"
 import jwt from "jsonwebtoken";
-// import { ref } from "node:process"
-// import { error } from "node:console"
+import type {Request, Response} from 'express'
 
 
 const router = Router()
 
-router.post("/register", async (req, res) => {
+router.post("/register", async (req: Request, res: Response) => {
     const { email, password, name } = req.body
     const existing = await prisma.user.findUnique({ where: { email } })
     if (existing) return res.status(400).json({ error: "User with this email already exists" })
@@ -25,7 +24,7 @@ router.post("/register", async (req, res) => {
     res.json({ id: user.id, email: user.email })
 });
 
-router.post("/login", async (req, res) => {
+router.post("/login", async (req: Request, res: Response) => {
     const { email, password } = req.body
     const user = await prisma.user.findUnique({ where: { email } })
     if (!user) return res.status(400).json({ error: "Invalid credentials" })
@@ -53,7 +52,7 @@ router.post("/login", async (req, res) => {
     res.json({ accessToken });
 });
 
-router.post("/refresh", async (req, res) => {
+router.post("/refresh", async (req: Request, res: Response) => {
     const { refreshToken } = req.cookies
 
     if (!refreshToken || typeof refreshToken !== 'string') {
@@ -95,5 +94,22 @@ router.post("/refresh", async (req, res) => {
         res.status(500).json({ message: "An unexpected error ocurred during refresh token." });
     }
 });
+
+router.post("/logout", async (req: Request, res: Response) => {
+    const { refreshToken } = req.cookies
+    
+    if (refreshToken) {
+        try {
+            const payload = verifyToken(refreshToken)
+            await prisma.session.delete({ where: { jwtId: payload.jti } })
+            
+        } catch (error) {
+            console.error("Logout error", error);
+        }
+    }
+
+    res.clearCookie(refreshToken)
+    res.json({ message: "Logged out successfully"})
+})
 
 export default router;
