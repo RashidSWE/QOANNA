@@ -2,6 +2,7 @@
 import type { Application } from 'express';
 import { createRequire } from 'node:module';
 import cors from "cors";
+import cookieParser from "cookie-parser"
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import userRoutes from "./routes/user.js"
@@ -30,6 +31,7 @@ const swaggerSpec = swaggerJsdoc(options);
 
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use(cookieParser())
 app.use("/v1/users", userRoutes)
 app.use("/v1/auth", authRoutes)
 export default app
