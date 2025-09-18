@@ -44,7 +44,6 @@ router.post("/login", async (req, res) => {
         },
     });
 
-    // Store refresh token in HTTP-only cookie
     res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
@@ -55,7 +54,7 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/refresh", async (req, res) => {
-    const { refreshToken } = req.cookies.refreshToken
+    const { refreshToken } = req.cookies
 
     if (!refreshToken || typeof refreshToken !== 'string') {
         return res.status(400).json({ message: "Refresh token is required and must be a string" })
