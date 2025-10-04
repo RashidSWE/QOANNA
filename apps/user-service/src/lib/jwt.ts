@@ -3,13 +3,13 @@ import { randomUUID } from "crypto";
 
 const ACCESS_TOKEN_TTL = "15m";
 const REFRESH_TOKEN_TTL = "7d"
+const verifyEmailTokenTTL = "1hr"
 
 
 function getJwtPrivateKey(): string {
     const key = process.env.JWT_PRIVATE_KEY;
     if (!key) {
         console.error("Critical error: JWT_PRIVATE_KEY environment variable is not set.");
-        // A more graceful shutdown is often preferred outside of simple scripts
         throw new Error("JWT_PRIVATE_KEY environment variable is not set.");
     }
     return key.replace(/\\n/g, "\n");
@@ -42,3 +42,16 @@ export function signRefreshToken(userId: string) {
         jwtId,
     };
 };
+
+export function SignEmailVerificationToken(userId: string) {
+    const jwtId = randomUUID()
+    const payload = { sub: userId };
+    return {
+        token: jwt.sign(payload, private_key, {
+            algorithm: "RS256",
+            expiresIn: verifyEmailTokenTTL,
+            jwtid: jwtId
+        }),
+        jwtId,
+    };
+}
