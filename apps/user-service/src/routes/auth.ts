@@ -1,27 +1,41 @@
 import { Router } from "express"
 import prisma from "../lib/prisma.js"
 import { hashPassword, verifyPassword } from "../lib/hash.js"
-import { signAccessToken, signRefreshToken } from "../lib/jwt.js"
+import { signAccessToken, SignEmailVerificationToken, signRefreshToken } from "../lib/jwt.js"
 import { verifyToken } from "../lib/jwt-verifier.js"
 import { add } from "date-fns"
 import jwt from "jsonwebtoken";
-import type {Request, Response} from 'express'
+import type { Request, Response } from 'express'
+import { verifyEmailController } from "../controllers/auth.controller.js"
+import { sendVerificationEmail } from "../lib/emailSender.js"
 
 
 const router = Router()
+
 
 router.post("/register", async (req: Request, res: Response) => {
     const { email, password, name } = req.body
     const existing = await prisma.user.findUnique({ where: { email } })
     if (existing) return res.status(400).json({ error: "User with this email already exists" })
-    
+
     const passwordHash = await hashPassword(password);
 
     const user = await prisma.user.create({
         data: { email, passwordHash, name },
     });
 
-    res.json({ id: user.id, email: user.email })
+    const { token: EmailVerificationToken, jwtId: verifyEmailjti } = SignEmailVerificationToken(user.id)
+    const verifyTokenExp = add(new Date(), { hours: 1 });
+    
+    await prisma.user.update({
+        where: { id: user.id }, 
+        data: { verificationToken: EmailVerificationToken, verifyTokenExp},
+    })
+
+    await sendVerificationEmail(user.email, EmailVerificationToken)
+    res.json({
+        message: "Registration Successful. Email verification link has been sent to your email. Verify email to activate your account "
+    })
 });
 
 router.post("/login", async (req: Request, res: Response) => {
@@ -31,6 +45,12 @@ router.post("/login", async (req: Request, res: Response) => {
     
     const valid = await verifyPassword(password, user.passwordHash)
     if (!valid) return res.status(400).json({ error: "Invalid credentials" })
+    
+    if (!user.isVerfied) {
+        const {token: EmailVerficationToken, jwtId: verifyEmailjti} = SignEmailVerificationToken(user.id)
+        await sendVerificationEmail(user.email, EmailVerficationToken)
+        return res.status(403).json({message: "Email not verified please verify email before login. link has been sent to your email"})
+    }
     
     const { token: accessToken, jwtId: accessjti } = signAccessToken(user.id, user.role)
     const { token: refreshToken, jwtId: refreshjti } = signRefreshToken(user.id);
@@ -111,5 +131,8 @@ router.post("/logout", async (req: Request, res: Response) => {
     res.clearCookie(refreshToken)
     res.json({ message: "Logged out successfully"})
 })
+
+router.get("/verify-email/:token", verifyEmailController);
+
 
 export default router;
