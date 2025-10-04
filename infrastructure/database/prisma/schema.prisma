@@ -16,14 +16,17 @@ datasource db {
 
 
 model User {
-  id        String    @id @default(cuid())
-  email     String   @unique
-  passwordHash String
-  name      String?
-  role      Role     @default(Student)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  Sessions Session[]
+  id                  String    @id @default(cuid())
+  email               String   @unique
+  passwordHash        String
+  name                String?
+  role                Role     @default(Student)
+  isVerfied           Boolean @default(false)
+  verificationToken   String?
+  verifyTokenExp      DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  Sessions            Session[]
 }
 
 model Session {
