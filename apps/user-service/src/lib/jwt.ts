@@ -4,6 +4,7 @@ import { randomUUID } from "crypto";
 const ACCESS_TOKEN_TTL = "15m";
 const REFRESH_TOKEN_TTL = "7d"
 const verifyEmailTokenTTL = "1hr"
+const ResetPasswordTokenTTL = "15m"
 
 
 function getJwtPrivateKey(): string {
@@ -50,6 +51,20 @@ export function SignEmailVerificationToken(userId: string) {
         token: jwt.sign(payload, private_key, {
             algorithm: "RS256",
             expiresIn: verifyEmailTokenTTL,
+            jwtid: jwtId
+        }),
+        jwtId,
+    };
+}
+
+export function SignResetPasswordToken(userId: string) {
+    const jwtId = randomUUID()
+    const payload = { sub: userId };
+
+    return {
+        token: jwt.sign(payload, private_key, {
+            algorithm: "RS256",
+            expiresIn: ResetPasswordTokenTTL,
             jwtid: jwtId
         }),
         jwtId,
