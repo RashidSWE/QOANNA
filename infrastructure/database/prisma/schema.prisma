@@ -24,6 +24,8 @@ model User {
   isVerfied           Boolean @default(false)
   verificationToken   String?
   verifyTokenExp      DateTime?
+  resetToken          String? @unique
+  resetTokenExp       DateTime?
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
   Sessions            Session[]
