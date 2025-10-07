@@ -33,3 +33,27 @@ export async function sendVerificationEmail(to: string, token: string) {
         `,
     })
 }
+
+export async function sendPasswordResetEmail(to: string, token: string) {
+    const baseUrl = process.env.CLIENT_URL || "http://localhost:3000";
+    const resetLink = `${baseUrl}/v1/auth/reset-password/${token}`;
+
+    await transporter.sendMail({
+        from: `"Supoort Team" <${process.env.SMTP_USER}>`,
+        to,
+        subject: "Reset Password",
+        html:  `
+        <div style="font-family: Arial, sans-serif; line-height: 1.5;">
+            <h2>Reset Your Password  🔒</h2>
+            <p>Click the button below to reset your password:</p>
+            <a href="${resetLink}" 
+            style="background-color: #007bff; color: white; padding: 10px 15px; border-radius: 5px; text-decoration: none;">
+            Reset Password
+            </a>
+            <p>If the button doesn’t work, copy and paste this link into your browser:</p>
+            <p><a href="${resetLink}">${resetLink}</a></p>
+            <p>This link will expire in 15 minutes.</p>
+        </div>
+        `,
+    })
+}
