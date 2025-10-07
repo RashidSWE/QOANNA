@@ -6,7 +6,7 @@ import { verifyToken } from "../lib/jwt-verifier.js"
 import { add } from "date-fns"
 import jwt from "jsonwebtoken";
 import type { Request, Response } from 'express'
-import { verifyEmailController } from "../controllers/auth.controller.js"
+import { verifyEmailController, requestPasswordResetController, resetPasswordController } from "../controllers/auth.controller.js"
 import { sendVerificationEmail } from "../lib/emailSender.js"
 
 
@@ -133,6 +133,7 @@ router.post("/logout", async (req: Request, res: Response) => {
 })
 
 router.get("/verify-email/:token", verifyEmailController);
-
+router.post("/request-password-reset", requestPasswordResetController);
+router.post("/reset-password/:token", resetPasswordController);
 
 export default router;
