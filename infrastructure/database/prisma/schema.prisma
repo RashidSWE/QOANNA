@@ -37,7 +37,7 @@ model User {
 model Session {
   id         String @id @default(cuid())
   userId     String
-  user       User @relation(fields: [userId], references: [id])
+  user       User @relation(fields: [userId], references: [id], onDelete: Cascade)
   jwtId      String @unique
   createdAt  DateTime @default(now())
   expiresAt DateTime
