@@ -136,4 +136,5 @@ router.get("/verify-email/:token", verifyEmailController);
 router.post("/request-password-reset", requestPasswordResetController);
 router.post("/reset-password/:token", resetPasswordController);
 
+
 export default router;
